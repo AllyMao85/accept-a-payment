@@ -3,12 +3,19 @@ import {withRouter} from 'react-router-dom';
 import {useStripe, useElements} from '@stripe/react-stripe-js';
 import StatusMessages, {useMessages} from './StatusMessages';
 
-const OxxoForm = () => {
+const Boleto = () => {
   const stripe = useStripe();
   const elements = useElements();
+  const [country, setCountry] = useState('BR');
+  const [state, setState] = useState('SP');
+  const [city, setCity] = useState('São Paulo');
+  const [postalCode, setPostalCode] = useState('01227-200');
+  const [line1, setLine1] = useState('Av Angelica 2491, Conjunto 91E');
   const [name, setName] = useState('Jenny Rosen');
-  const [email, setEmail] = useState('jr.succeed_immediately@example.com');
+  const [email, setEmail] = useState('jr@example.com');
+  const [taxId, setTaxId] = useState('000.000.000-00');
   const [messages, addMessage] = useMessages();
+
 
   const handleSubmit = async (e) => {
     // We don't want to let default form submission happen here,
@@ -30,8 +37,8 @@ const OxxoForm = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          paymentMethodType: 'oxxo',
-          currency: 'mxn',
+          paymentMethodType: 'boleto',
+          currency: 'brl',
         }),
       }
     ).then((r) => r.json());
@@ -43,13 +50,23 @@ const OxxoForm = () => {
 
     addMessage('Client secret returned');
 
-    const {error: stripeError, paymentIntent} = await stripe.confirmOxxoPayment(
+    const {error: stripeError, paymentIntent} = await stripe.confirmBoletoPayment(
       clientSecret,
       {
         payment_method: {
           billing_details: {
+            address: {
+              country,
+              state,
+              city,
+              postal_code: postalCode,
+              line1, 
+            },
             name,
             email,
+          },
+          boleto: {
+            tax_id: taxId,
           },
         },
       }
@@ -88,7 +105,7 @@ const OxxoForm = () => {
 
   return (
     <>
-      <h1>OXXO</h1>
+      <h1>Boleto</h1>
 
       <form id="payment-form" onSubmit={handleSubmit}>
         <label htmlFor="name">Name</label>
@@ -108,14 +125,60 @@ const OxxoForm = () => {
           required
         />
 
+        <label htmlFor="tax_id">Tax id</label>
+        <input
+          id="tax_id"
+          value={taxId}
+          onChange={(e) => setTaxId(e.target.value)}
+          required
+        />
+
+        <label htmlFor="country">Country</label>
+        <input
+          id="country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          required
+        />
+
+        <label htmlFor="state">State</label>
+        <input
+          id="state"
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          required
+        />
+
+        <label htmlFor="city">City</label>
+        <input
+          id="city"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          required
+        />
+
+        <label htmlFor="postal_code">Postal Code</label>
+        <input
+          id="postal_code"
+          value={postalCode}
+          onChange={(e) => setPostalCode(e.target.value)}
+          required
+        />
+
+        <label htmlFor="line1">Line 1</label>
+        <input
+          id="line1"
+          value={line1}
+          onChange={(e) => setLine1(e.target.value)}
+          required
+        />
+
         <button type="submit">Pay</button>
       </form>
 
       <StatusMessages messages={messages} />
-
-      <p> <a href="https://youtu.be/zmNMMBbYFf0" target="_blank">Watch a demo walkthrough</a> </p>
     </>
   );
 };
 
-export default withRouter(OxxoForm);
+export default withRouter(Boleto);
